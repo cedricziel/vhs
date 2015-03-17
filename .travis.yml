@@ -1,0 +1,37 @@
+language: php
+
+matrix:
+  allow_failures:
+    - php: 7
+      env: TYPO3_VERSION="7.1.*"
+    - php: 5.6
+      env: TYPO3_VERSION="7.1.*" COVERAGE="yes"
+  include:
+    - php: 5.4
+      env: TYPO3_VERSION="6.2.*"
+    - php: 5.5
+      env: TYPO3_VERSION="7.1.*"
+    - php: 5.6
+      env: TYPO3_VERSION="7.1.*" CHECKSTYLE="yes"
+    - php: hhvm
+      env: TYPO3_VERSION="7.1.*"
+before_script:
+  - composer self-update
+  - composer install
+install:
+  - >
+    if [[ "7.1.*" != "$TYPO3_VERSION" ]]; then
+      echo "Overriding typo3/cms with version $TYPO3_VERSION";
+      composer require typo3/cms:${TYPO3_VERSION}
+    fi
+script:
+  - >
+    if [[ "$COVERAGE" == "yes" ]]; then
+      ./vendor/bin/checkstyle
+    fi
+  - ./vendor/bin/runtests
+  - >
+    if [[ "$COVERAGE" == "yes" ]]; then
+      ln -s Classes src
+      ./vendor/bin/runcoverage
+    fi
